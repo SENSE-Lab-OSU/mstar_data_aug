@@ -1,0 +1,1 @@
+This is where all generated augmented complex-valued SAR images are stored, after running the scripts generate_aug_images.m and merge_files.m, in that order.
