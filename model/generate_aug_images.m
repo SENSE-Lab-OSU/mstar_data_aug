@@ -7,7 +7,7 @@ addpath('mtimesx')
 path2PH=('../data/phase_histories/');
 path2coeff=('../data/recovered_coefficients/');
 sample_start=1; %Change sample_start to start generating from that sample
-sample_end=1; %This is mostly dummy variable unless line 38 is commented
+sample_end=1; %This is mostly dummy variable unless line 40 is commented
 %Rough time calc: 2747*4*22=67 vs 2747*4*11=67
 %Estimated time per sample (~80gb RAM)=  255.87-153.62= 102.25
 %Estimated time per sample (~30gb RAM)=  237.87-136.3= 101.57
@@ -23,9 +23,11 @@ tol_add=[-ones(1,9)*0.01 -0.03 0 -0.01 -0.03 0 0 -0.02 zeros(1,3) 0.02 ...
     zeros(1,2) -0.02 0 -0.02 -0.03 zeros(1,2) -0.02 0 -0.02 -0.03];
 tol_add=flip(-tol_add); %New change after dtheta sign fiasco!
 
-for idxClass = 5%:length(fileNamePrefix)
+for idxClass = 3%:length(fileNamePrefix)
     %e=load(sprintf('%s%s_trainImPhaseHistories',path2PH,fileNamePrefix{idxClass}));
-    e=load(sprintf('%s%s_masked',path2PH,fileNamePrefix{idxClass}));
+    %e=load(sprintf('%s%s_masked',path2PH,fileNamePrefix{idxClass}));
+    e=load(sprintf('%s%s_PH',path2PH,fileNamePrefix{idxClass}));
+
     
     m=load(sprintf('%s%s',path2coeff,fileNamePrefix{idxClass}));
     class_folder=sprintf('../data/gen_aug_data/%s',fileNamePrefix{idxClass});
@@ -37,7 +39,7 @@ for idxClass = 5%:length(fileNamePrefix)
     
     numTrainingSamples = size(m.y_recovered,3);
     disp('Line 38 will over-ride sample_end to iterate over all remaining samples');
-    sample_end=numTrainingSamples;
+    %sample_end=numTrainingSamples;
     
     taylorWindow = kron(taylorwin(100,4,-35),taylorwin(100,4,-35).');
     %thetas = [-5.5:0.03:-1.5-0.03 linspace(-1.5,1.5,100) 1.53:0.03:5.5 ] ;
@@ -114,7 +116,9 @@ for idxClass = 5%:length(fileNamePrefix)
         BasisFunc = exp(-0.5*dist.^2/gaussWidth^2);
         BasisFunc = BasisFunc/normBasisFunc;
         
-        elevation = e.depression(idxTrain);
+        %elevation = e.depression(idxTrain);
+        elevation = e.elevation(idxTrain);
+
         
         %Using this discrete approach, we could possibly save full 128X128 
         %images
@@ -124,7 +128,7 @@ for idxClass = 5%:length(fileNamePrefix)
         countIm=1;
         
         for idxShifts =1:length(shiftsy)
-            fprintf('processing %d  class and %d image %d shift \n'...
+            fprintf('processing class %d, image %d, shift %d \n'...
                 ,idxClass,idxTrain,idxShifts);
             fNew = linspace(fLower*sind(90 + 1.5),fLower + bandwidth,100 ).';
             yy =   (4*pi/velLight*(fNew)*cosd(elevation));% (4*pi/velLight*f*cosd(elevation)); %

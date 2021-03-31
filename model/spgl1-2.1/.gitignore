@@ -1,0 +1,6 @@
+web/eqs
+web/*.html
+*~
+docs/site
+.DS_Store
+site

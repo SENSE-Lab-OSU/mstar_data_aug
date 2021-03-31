@@ -14,13 +14,13 @@ numBasisFunctions = size(BasisFunc,2);
 
 pulseCounts=1;
 if mode == 1
-
     xx = reshape(x,numRangeBins^2,numBasisFunctions);
     xx_interp = (BasisFunc*xx.').';
     xx_interp = reshape(xx_interp,numRangeBins^2,1,numTotalPulse);
     xx_interp1 = xx_interp(:,:,pulseSel>0); 
 
     y=mtimesx(Amod, xx_interp1,'MATLAB');
+    y=y(:);
 %     Amod=permute(Amod,[3,1,2]);
 %     y=double(py.numpy.matmul(Amod,py.numpy.transpose(xx_interp1,[2,0,1])));
 %     y=y.';
