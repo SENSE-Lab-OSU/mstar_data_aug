@@ -13,7 +13,6 @@ gaussWidth = 1;
 %% Iterate over all classes
 
 for idxClass =1%:length(fileNamePrefix)
-    %load(sprintf('%s_masked',fileNamePrefix{idxClass}));
     data_PH=load(sprintf('../data/phase_histories/%s_PH',fileNamePrefix{idxClass}));
     numImages = size(data_PH.arr_img_fft_polar,3);
     f_center = 9.6e9;
@@ -23,7 +22,6 @@ for idxClass =1%:length(fileNamePrefix)
     f = linspace(fLower,fLower + bandwidth,100 ).';
     
     % Using the horizontal polarization measurements
-    %thetas =  linspace(-1.5,1.5,100);
     thetas = (-1.5:0.03:1.5-0.03);
     bisectorAngles = 90 + thetas;
     azimuthVals = bisectorAngles;
@@ -43,7 +41,6 @@ for idxClass =1%:length(fileNamePrefix)
     gaussWidthMin = 1;
     
     %The angular and spatial grid points
-    
     L =30;
     azimuthBasisCenters = 90+ linspace(-1.5,1.5,numAzimuthBasisCenters);
     
@@ -79,11 +76,10 @@ for idxClass =1%:length(fileNamePrefix)
     x_recovered = zeros(100*100*numVariables,numChips);
     fileName = sprintf('../data/recovered_coefficients/%s',fileNamePrefix{idxClass});
     gaussWidthStore=zeros(numChips,1);
-    for idxChips = 1:1%numChips
+    for idxChips = 1:numChips
         fprintf('processing class=%d,image=%d\n',idxClass,idxChips);
-        %depression = depression(idxChips);
+        
         depression = data_PH.depression(idxChips);
-
         A_mod = zeros(numFreqBins,numRangeBins^2,numAzimuthBinsTotal);
         for idxPulses=1:numAzimuthBinsTotal
             A_mod(:,:,idxPulses) =1/sqrt(numFreqBins)*exp(1i*4*pi*F*...

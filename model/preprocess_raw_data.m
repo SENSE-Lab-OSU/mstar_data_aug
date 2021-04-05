@@ -10,22 +10,20 @@ extensions = {'000','000','001','002','001','003','004','005','016',...
         
 %Define constant parameters
 f_center = 9.6e9;
-velLight = 299792458;%3e8;
+velLight = 299792458;
 numPixelsCrop = 128;
 numPixelsTarget = 100;
-bandwidth = 521e6; %591e6;
+bandwidth = 521e6;
 fLower = f_center - bandwidth/2;
 taylorWindow = kron(taylorwin(numPixelsTarget,4,-35),taylorwin(numPixelsTarget,4,-35).');
 f = linspace(fLower,fLower + bandwidth,numPixelsTarget ).';
 thetas = (-1.5:0.03:1.5-0.03);
 fRep  = repmat(f,1,numPixelsTarget);
-%thetas = linspace(-1.5,1.5,numPixelsTarget);
 
 %% Iterate over all classes/folders
 
 for idxPrefix = 1:length(fileNamePrefix)
     fprintf('Processing Class %s ...\n',fileNamePrefix{idxPrefix});
-    %file_names=[];
     pathLoad=sprintf('%s/%s/',path2mstar,fileNamePrefix{idxPrefix});
     file_names=dir([pathLoad sprintf('*.%s',extensions{idxPrefix})]);
     file_names=cell2mat((extractfield(file_names,'name'))');
@@ -46,24 +44,11 @@ for idxPrefix = 1:length(fileNamePrefix)
         azi=gg.TargetAz;
         depression(i) = gg.MeasuredDepression;
         arr_azi(i)=azi;
-
-        %yy = (4*pi/velLight*f*cosd(elevation));
-        %xx1 = thetas.';
-        %xx = (4*pi/velLight*f(end)*cosd(elevation)*sind(xx1));
-        %[XX,YY] = meshgrid(xx,yy);
-        %pointsOrig = [XX(:).';YY(:).'];
-        %rotationMat = [cosd(0*azi) -sind(0*azi);sind(0*azi) cosd(0*azi)];
-        %pointsRot=  rotationMat *pointsOrig;
-        %XX  = pointsRot(1,:);
-        %YY = pointsRot(2,:);
-        %XX = reshape(XX,numPixelsTarget,numPixelsTarget);
-        %YY = reshape(YY,numPixelsTarget,numPixelsTarget);
         
         %"Square" the image
         if i==1
             len=min(size(img_comp));
         end
-        %img_comp=flipud(img_comp(1:len,1:len));
         img_comp=img_comp(1:len,1:len);
         
         %Crop to fixed size numPixelsCrop while maintaining centering
@@ -93,14 +78,8 @@ for idxPrefix = 1:length(fileNamePrefix)
             + numPixelsTarget -round(numPixelsTarget/2) ,centerIm(2)-round(numPixelsTarget/2)+1:centerIm(2) ...
         + numPixelsTarget -round(numPixelsTarget/2),1));
         arr_img_fft_polar(:,:,i) = (interp2(XX,YY,(arr_img_fft_crop),k_1,k_2,'spline',0));
-        %arr_img_fft_polar(:,:,i) = griddata(XX,YY,real(arr_img_fft_crop(:,:,i)),k_1,k_2,'nearest')...
-        %                    +1i*griddata(XX,YY,imag(arr_img_fft_crop(:,:,i)),k_1,k_2,'nearest');
-        %     ddd = 20*log10(abs(fliplr(arr_img_fft_polar(:,:,i))));
-        %     maxVals(i) = max(ddd(:));
-        %     hold on; scatter(k_1_2(:),k_2_2(:),300,ddd(:),'.'); colormap jet; axis square;
-        %     caxis([max(maxVals)-50,max(maxVals(:)) ]); drawnow;
     end
-    %depression=depression*ones(size(arr_azi));
+    
     %Save data to disc
     save(sprintf('../data/phase_histories/%s_PH',fileNamePrefix{idxPrefix}),...
           'arr_azi','arr_img_fft_polar','arr_img_comp','depression');
