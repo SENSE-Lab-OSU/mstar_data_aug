@@ -27,4 +27,7 @@ __pycache__
 *.py[cod]
 *$py.class
 
+#MATLAB temp files
+*.asv
+
 
