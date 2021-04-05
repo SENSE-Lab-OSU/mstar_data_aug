@@ -29,4 +29,4 @@ Repository containing augmentation code corresponding to the paper [Sparse Signa
 
 ### Contributions
 
-Contributions are welcome for improving this repo. They could be about refactoring the code, creating other language versions of the code (Python, R etc.) or improving the performance.
+Contributions are welcome for improving this repo. They could be about refactoring the code, creating other language versions of the code (Python, R etc.) or improving the performance. Feel free to reach out to Tushar Agarwal (agarwal.270@buckeyemail.osu.edu) or Nithin Sugavanam (sugavanam.3@buckeyemail.osu.edu) with any questions, suggestions or concerns.
