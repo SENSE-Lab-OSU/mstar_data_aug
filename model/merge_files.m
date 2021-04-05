@@ -1,13 +1,15 @@
 clear all;close all;clc;
 %stuff from main code
-fileNamePrefix = {'BMP2_SN_9563', 'BTR_70_SN_C71', 'T72_SN_132', 'BTR_60','2S1', 'BRDM_2', 'D7', 'T62', 'ZIL131', 'ZSU_234'};
+fileNamePrefix = {'2S1','BMP2_SN_9563','BMP2_SN_9566','BMP2_SN_C21',...
+                'BRDM_2','BTR_60','BTR70_SN_C71','D7','T62',...
+                'T72_SN_132','T72_SN_812','T72_SN_S7','ZIL131','ZSU_23_4'};
 %n_samples=[233,233,232,256,299,298,299,299,299,299]
 array_dtheta=[-6:0.25:-0.25 0.25:0.25:6];
 shiftsy =[0,0.15,0, 0.15];
 shiftsx =[0,0, 0.15,0.15];
 
 
-idxClass=5; %specify class here
+idxClass=1; %specify class here
 path2coeff=('../data/recovered_coefficients/');
 m=load(sprintf('%s%s',path2coeff,fileNamePrefix{idxClass}));
 numTrainingSamples = size(m.y_recovered,3);
@@ -16,7 +18,7 @@ clearvars m
 %Merge code
 infer_sample_flag=0;
 sample_start=1;
-sample_end=2%numTrainingSamples;
+sample_end=1;%numTrainingSamples;
 class_folder=sprintf('../data/gen_aug_data/%s',fileNamePrefix{idxClass});
 class_file=sprintf('../data/gen_aug_data/%s_aug_images.mat',fileNamePrefix{idxClass});
 s=load(sprintf('%s/sample_%d',class_folder,sample_start));
