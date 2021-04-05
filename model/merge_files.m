@@ -1,13 +1,15 @@
 clear all;close all;clc;
 %stuff from main code
-fileNamePrefix = {'BMP2_SN_9563', 'BTR_70_SN_C71', 'T72_SN_132', 'BTR_60','2S1', 'BRDM_2', 'D7', 'T62', 'ZIL131', 'ZSU_234'};
+fileNamePrefix = {'2S1','BMP2_SN_9563','BMP2_SN_9566','BMP2_SN_C21',...
+                'BRDM_2','BTR_60','BTR70_SN_C71','D7','T62',...
+                'T72_SN_132','T72_SN_812','T72_SN_S7','ZIL131','ZSU_23_4'};
 %n_samples=[233,233,232,256,299,298,299,299,299,299]
 array_dtheta=[-6:0.25:-0.25 0.25:0.25:6];
 shiftsy =[0,0.15,0, 0.15];
 shiftsx =[0,0, 0.15,0.15];
 
 
-idxClass=5; %specify class here
+idxClass=1; %specify class here
 path2coeff=('../data/recovered_coefficients/');
 m=load(sprintf('%s%s',path2coeff,fileNamePrefix{idxClass}));
 numTrainingSamples = size(m.y_recovered,3);
@@ -16,7 +18,7 @@ clearvars m
 %Merge code
 infer_sample_flag=0;
 sample_start=1;
-sample_end=2%numTrainingSamples;
+sample_end=numTrainingSamples;
 class_folder=sprintf('../data/gen_aug_data/%s',fileNamePrefix{idxClass});
 class_file=sprintf('../data/gen_aug_data/%s_aug_images.mat',fileNamePrefix{idxClass});
 s=load(sprintf('%s/sample_%d',class_folder,sample_start));
@@ -38,10 +40,6 @@ if isfile(class_file)
         sample_start=sample_start_hat;
     end
     
-%     if sample_start~=sample_start_hat
-%         error('Sample starts do not match and are: specified= %d, from_file= %d.',...
-%             sample_start,sample_start_hat);
-%     end
 else
     %Initialize empty array
     imgTrain =zeros((length(array_dtheta)+1)*length(shiftsy)*numTrainingSamples,64,64);
@@ -66,52 +64,6 @@ for idxSample=sample_start:sample_end
     elev(fill_start:fill_end,:)=s.elev;
 end
 
-%% Checks and Plots (optional)
-%{
-path2ori='E:\Box Sync\mstar\Tushar_tries\Data_cropped\train\';
-e=load(sprintf('%s%s_trainImPhaseHistories',path2ori,fileNamePrefix{idxClass}));
-sort_azi=sort(e.arr_azi);
-close all;
-idxSample=1;
-%factr=147;
-azi=e.arr_azi(idxSample);
-
-% The originals
-figure;imagesc(abs(reshape(e.arr_img_comp(idxSample,28:91,28:91),64,64)));
-title(['Index = ' num2str(idxSample) ' azi = ' num2str(e.arr_azi(idxSample))]);
-%idxSample=21;
-figure;imagesc(abs(reshape(e.arr_img_comp(idxSample+1,28:91,28:91),64,64)));
-title(['Index = ' num2str(idxSample+1) ' azi = ' num2str(e.arr_azi(idxSample+1))]);
-%idxSample=idxSample+1;
-
-%The originals of augmented
-figure;imagesc(abs(reshape(e.arr_img_comp(e.arr_azi==(e.arr_azi(idxSample)-3),28:91,28:91),64,64)));
-title(['Index = ' num2str(idxSample) ' azi = ' num2str(e.arr_azi(idxSample)-3)]);
-%idxSample=21;
-figure;imagesc(abs(reshape(e.arr_img_comp(e.arr_azi==(e.arr_azi(idxSample)+3),28:91,28:91),64,64)));
-title(['Index = ' num2str(idxSample) ' azi = ' num2str(e.arr_azi(idxSample)+3)]);
-
-%Pose plots
-plot_start=1+(idxSample-1)*factr;
-plot_end=plot_start+49;%(factr-1);
-plot_step=7;
-plot_indices=plot_start:plot_step:plot_end;
-plot_indices=[1,1+13,1+36]+(idxSample-1)*factr;
-for idxPlot=plot_indices
-    figure;imagesc(abs(reshape(imgTrain(idxPlot,:,:),64,64)));
-    title(['Index = ' num2str(idxPlot) ' azi = ' num2str(aziTrain(idxPlot))]);
-end
-
-%Translation plots
-close all;
-plot_start=10+(idxSample-1)*factr;
-plot_end=plot_start+(factr-1);
-plot_step=factr/4;
-for idxPlot=plot_start:plot_step:plot_end
-    figure;imagesc(abs(reshape(imgTrain(idxPlot,:,:),64,64)));
-    title(['Index = ' num2str(idxPlot) ' azi = ' num2str(aziTrain(idxPlot))]);
-end
-%}
 %% Save
 disp('Saving Data to disk...')
 save(class_file,'imgTrain','aziTrain','elev','-v7.3');

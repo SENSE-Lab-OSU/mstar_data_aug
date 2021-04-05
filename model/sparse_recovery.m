@@ -2,40 +2,32 @@ clc;
 clear all;
 close all;
 
-%addpath('C:\easysense\spgl1-1.9');
-addpath('spgl1-1.9');
+addpath('spgl1-2.1');
 addpath('mtimesx');
-%addpath('C:\monostatic\Tushar_tries\train\mask\')
 
-fileNamePrefix = {'T72_SN_132'};
+fileNamePrefix = {'2S1','BMP2_SN_9563','BMP2_SN_9566','BMP2_SN_C21',...
+                'BRDM_2','BTR_60','BTR70_SN_C71','D7','T62',...
+                'T72_SN_132','T72_SN_812','T72_SN_S7','ZIL131','ZSU_23_4'};
 gaussWidth = 1;
 
-%%
-for idxClass =1:length(fileNamePrefix)
-    %load(sprintf('%s_masked',fileNamePrefix{idxClass}));
+%% Iterate over all classes
+
+for idxClass =1%:length(fileNamePrefix)
     data_PH=load(sprintf('../data/phase_histories/%s_PH',fileNamePrefix{idxClass}));
     numImages = size(data_PH.arr_img_fft_polar,3);
     f_center = 9.6e9;
-    bandwidth = 521e6;
+    bandwidth = 521e6; %591e6
     delF = bandwidth/100;
-    
     fLower = f_center - bandwidth/2;
     f = linspace(fLower,fLower + bandwidth,100 ).';
     
     % Using the horizontal polarization measurements
-    thetas =  linspace(-1.5,1.5,100);
+    thetas = (-1.5:0.03:1.5-0.03);
     bisectorAngles = 90 + thetas;
     azimuthVals = bisectorAngles;
     deltaAngles = 0;
-    
-    
-    
-    numChips = size(data_PH.arr_img_fft_polar,3);
-    
-    velLight= 3e8;
-    
-    
-    
+    numChips = size(data_PH.arr_img_fft_polar,3);   
+    velLight = 299792458;
     
     numFreqBins = length(f);
     pixelResolutionMSTAR = 0.202;
@@ -46,10 +38,9 @@ for idxClass =1:length(fileNamePrefix)
     numAzimuthBasisCenters = round(3/AzimuthBasisCenterSpacing);
     
     gaussWidthMax=5;
-    gaussWidthMin = 0.5;
+    gaussWidthMin = 1;
     
-    %THe angular and spatial grid points
-    
+    %The angular and spatial grid points
     L =30;
     azimuthBasisCenters = 90+ linspace(-1.5,1.5,numAzimuthBasisCenters);
     
@@ -74,31 +65,25 @@ for idxClass =1:length(fileNamePrefix)
     groups_l12 = repmat((1:numRangeBins^2).',1,numVariables);
     groups_l12=groups_l12(:);
     
-    
-    
-    
     numPulses = numAzimuthBinsTotal;
-    
-    
     pulseSelectIDx = 1:length(azimuthVals);
     az =azimuthVals;
     
     
-    %% loop over different chips
+    % loop over different chips
     y_recovered = zeros(100,100,numChips);
     y_residual =  zeros(100,100,numChips);
     x_recovered = zeros(100*100*numVariables,numChips);
     fileName = sprintf('../data/recovered_coefficients/%s',fileNamePrefix{idxClass});
     gaussWidthStore=zeros(numChips,1);
-    for idxChips = 1:1%numChips
+    for idxChips = 1:numChips
         fprintf('processing class=%d,image=%d\n',idxClass,idxChips);
-        %elevation = depression(idxChips);
-        elevation = data_PH.elevation(idxChips);
-
+        
+        depression = data_PH.depression(idxChips);
         A_mod = zeros(numFreqBins,numRangeBins^2,numAzimuthBinsTotal);
         for idxPulses=1:numAzimuthBinsTotal
             A_mod(:,:,idxPulses) =1/sqrt(numFreqBins)*exp(1i*4*pi*F*...
-                cosd(elevation)/velLight.*(Xp.*cosd(azimuthVals(idxPulses)) +...
+                cosd(depression)/velLight.*(Xp.*cosd(azimuthVals(idxPulses)) +...
                 Yp.*sind(azimuthVals(idxPulses)) ));
         end
         
@@ -113,10 +98,10 @@ for idxClass =1:length(fileNamePrefix)
         
         ff = @(g) reconError(y1,g,pulseSelectIDx,dist,azimuthVals,numFreqBins,numRangeBins,A_mod,groups_l12,sigma_n);
         tic;
-        gaussWidth = fminbnd(ff,0.5,5,options);
+        gaussWidth = fminbnd(ff,gaussWidthMin,gaussWidthMax,options);
         toc;
         
-        %Looks redundant as in reconError. Cleanup.
+        %TODO: Looks redundant as in reconError.
         BasisFunc = exp(-0.5*dist.^2/gaussWidth^2);
         normBasisFunc = diag((sum(BasisFunc.^2,1)).^0.5);
         BasisFunc = BasisFunc/normBasisFunc;
@@ -132,16 +117,4 @@ for idxClass =1:length(fileNamePrefix)
         gaussWidthStore(idxChips) = gaussWidth;
     end
     save(fileName,'x_recovered','y_recovered','y_residual','gaussWidthStore');
-end
-
-%%
-function ee = reconError(y1,gaussWidth,pulseSelectIDx,dist,azimuthVals,numFreqBins,numRangeBins,A_mod,groups_l12,sigma_n)
-    BasisFunc = exp(-0.5*dist.^2/gaussWidth^2);
-    normBasisFunc = diag((sum(BasisFunc.^2,1)).^0.5);
-    BasisFunc = BasisFunc/normBasisFunc;
-    A = @(x,mode) SAR_operator_gen(x,mode,pulseSelectIDx,numRangeBins,numFreqBins,azimuthVals,BasisFunc,A_mod(:,:,pulseSelectIDx));
-    opts = spgSetParms('iscomplex',1,'verbosity',0);
-    %Find Optimum C
-    C = spg_group(A, y1, groups_l12, sigma_n, opts );
-    ee = 0.5*norm(A(C,1)-y1)^2;
 end

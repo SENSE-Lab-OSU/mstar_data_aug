@@ -1,5 +1,8 @@
 #Remove Data folder recursively for exclusions to apply
-data/*
+data/gen_aug_data/*
+data/phase_histories/*
+data/recovered_coefficients/*
+data/old/*
 
 #skip any README, .py or .gitkeep
 !*README*

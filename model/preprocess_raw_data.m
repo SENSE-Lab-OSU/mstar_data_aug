@@ -1,87 +1,86 @@
 % Load and match image with the given sample jpg
-clear all;close all;clc;
-% TODO: Specify path to the specific class' data from CD
-pathLoad='E:/BoxS/Box Sync/mstar/Data_from_CD/CD_2_publicTargets/TARGETS/TRAIN/17_DEG/T72_SN_132/';
-file_ext='015';
-file_out_prefix = 'T72_SN_132';
-% TODO: Specify path to the Solver_fixedBistatic_Group
-%addpath('E:/BoxS/Box Sync/mstar/Solver_fixedBistatic_Group/');
-
-% Load data
-file_names=dir([pathLoad '*.' file_ext]);
-file_names=cell2mat((extractfield(file_names,'name'))');
-
-% Set some predefined parameters specific to processing MSTAR dataset
-taylorWindow = kron(taylorwin(100,4,-35),taylorwin(100,4,-35).');
+clear all;clc;close all;
+%Set the path to the desired data directory in MSTAR CD data
+path2mstar='E:/BoxS/Box Sync/mstar/Data_from_CD/CD_2_publicTargets/TARGETS/TRAIN/17_DEG';
+fileNamePrefix = {'2S1','BMP2_SN_9563','BMP2_SN_9566','BMP2_SN_C21',...
+                'BRDM_2','BTR_60','BTR70_SN_C71','D7','T62',...
+                'T72_SN_132','T72_SN_812','T72_SN_S7','ZIL131','ZSU_23_4'};
+extensions = {'000','000','001','002','001','003','004','005','016',...
+            '015','016','017','025','026'};
+        
+%Define constant parameters
 f_center = 9.6e9;
+velLight = 299792458;
+numPixelsCrop = 128;
+numPixelsTarget = 100;
 bandwidth = 521e6;
-delF = bandwidth/100;
 fLower = f_center - bandwidth/2;
-f = linspace(fLower,fLower + bandwidth,100 ).';
-velLight = 3e8;
-fRep = repmat(f,1,100);
+taylorWindow = kron(taylorwin(numPixelsTarget,4,-35),taylorwin(numPixelsTarget,4,-35).');
+f = linspace(fLower,fLower + bandwidth,numPixelsTarget ).';
 thetas = (-1.5:0.03:1.5-0.03);
-numFreqs  = length(f);
-numBisectors = length(thetas);
-fSimulationRep = repmat(f,1,numBisectors);
+fRep  = repmat(f,1,numPixelsTarget);
 
-%{
-%Preallocate arrays
-n_samples=size(file_names,1)
-arr_azi=zeros(
-arr_img_comp=
-arr_img_comp_rot=
-arr_img_fft=
-arr_img_fft_crop=
-arr_img_fft_polar=
-%}
+%% Iterate over all classes/folders
 
-for i = 1:size(file_names,1)
-    path1=[pathLoad file_names(i,:)];
-    gg=MSTAR_LOAD_IMAGE(path1);
-    elevation = gg.MeasuredDepression;
-    yy = (4*pi/velLight*f*cosd(elevation));
-    xx1 = (-1.5:0.03:1.5-0.03).';
-    xx = (4*pi/velLight*f(end)*cosd(elevation)*sind(xx1));
-    [XX,YY] = meshgrid(xx,yy);
-    pointsOrig = [XX(:).';YY(:).'];
-    img_comp=(flipud(gg.ImageData));
-    azi=gg.TargetAz;
-    rotationMat = [cosd(0*azi) -sind(0*azi);sind(0*azi) cosd(0*azi)];
-    pointsRot=  rotationMat *pointsOrig;
-    XX  = pointsRot(1,:);
-    YY = pointsRot(2,:);
-    XX = reshape(XX,100,100);
-    YY = reshape(YY,100,100);
+for idxPrefix = 1:length(fileNamePrefix)
+    fprintf('Processing Class %s ...\n',fileNamePrefix{idxPrefix});
+    pathLoad=sprintf('%s/%s/',path2mstar,fileNamePrefix{idxPrefix});
+    file_names=dir([pathLoad sprintf('*.%s',extensions{idxPrefix})]);
+    file_names=cell2mat((extractfield(file_names,'name'))');
     
-    len=128;
-    img_comp=img_comp(1:len,1:len);
-    img_comp_rot = imrotate(img_comp,azi,'bilinear','crop');
+    %initialize the arrays to store
+    lenth=length(file_names);
+    arr_azi = zeros(1,lenth);
+    depression=zeros(1,lenth);
+    arr_img_comp=zeros(lenth,numPixelsCrop,numPixelsCrop);
+    arr_img_fft_polar = zeros(numPixelsTarget,numPixelsTarget,lenth);
 
-    arr_azi(i)=azi;
+    %Iterate over all samples
+    for i = 1:lenth
+        path1=[pathLoad file_names(i,:)];
+        gg=MSTAR_LOAD_IMAGE(path1);
+        
+        img_comp=(flipud(gg.ImageData));
+        azi=gg.TargetAz;
+        depression(i) = gg.MeasuredDepression;
+        arr_azi(i)=azi;
+        
+        %"Square" the image
+        if i==1
+            len=min(size(img_comp));
+        end
+        img_comp=img_comp(1:len,1:len);
+        
+        %Crop to fixed size numPixelsCrop while maintaining centering
+        centerIm = floor(size(img_comp)/2);
+        img_comp = img_comp(centerIm(1) -floor(numPixelsCrop/2)+1:centerIm(1) +floor(numPixelsCrop/2),...
+             centerIm(2) -floor(numPixelsCrop/2)+1:centerIm(2) +floor(numPixelsCrop/2));
+        centerIm = floor(size(img_comp)/2);
+        arr_img_comp(i,:,:) = img_comp;
+        
+        %form the polar meshgrid
+        thetaRep = repmat(thetas,numPixelsTarget,1);
+        k_1 =  (4*pi/velLight*cosd(depression(i))*fRep.*sind(thetaRep));
+        k_2 =  (4*pi/velLight*cosd(depression(i))*fRep.*cosd(thetaRep));
+        yy = linspace(min(k_2(:)),max(k_2(:)),100);
+        xx = linspace(min(k_1(:)),max(k_1(:)),100);
+        [XX,YY] = meshgrid(xx,yy); 
+        
+        %form image-domain cropping mask of desired size (64-by-64)
+        mask1 = zeros(numPixelsCrop,numPixelsCrop);
+        mask1(centerIm-32:centerIm+31,centerIm-32:centerIm+31) = 1;
+        
+        %Mask and transform to phase history domain
+        arr_img_fft = fftshift(fft2(ifftshift(mask1.*img_comp)));
+        
+        %Undo the taylor window and crop to numPixelsTarget
+        arr_img_fft_crop =(1./taylorWindow.*arr_img_fft(centerIm(1)-round(numPixelsTarget/2)+1:centerIm(1)...
+            + numPixelsTarget -round(numPixelsTarget/2) ,centerIm(2)-round(numPixelsTarget/2)+1:centerIm(2) ...
+        + numPixelsTarget -round(numPixelsTarget/2),1));
+        arr_img_fft_polar(:,:,i) = (interp2(XX,YY,(arr_img_fft_crop),k_1,k_2,'spline',0));
+    end
     
-    thetasActual = 90 + (arr_azi(i)-1.5:0.03:arr_azi(i)+1.5-0.03);
-    thetaRep = repmat(thetas,100,1);
-    thetaRep1 = repmat(thetasActual,100,1);
-    
-    k_1 =  (4*pi/velLight*cosd(elevation)*fRep.*sind(thetaRep));
-    k_2 =  (4*pi/velLight*cosd(elevation)*fRep.*cosd(thetaRep));
-
-    k_1_2=  (4*pi/velLight*cosd(elevation)*fRep.*sind(thetaRep1));
-    k_2_2 =  (4*pi/velLight*cosd(elevation)*fRep.*cosd(thetaRep1));
-    mask1 = zeros(128,128);
-    mask1(64-42:64+42,64-42:64+42) = 1;
-    arr_img_comp(:,:,i)=img_comp;
-    arr_img_comp_rot(:,:,i)=img_comp_rot;
-    arr_img_fft(:,:,i) = fftshift(fft2(ifftshift(mask1.*img_comp)));
-    centerIm = round(size(img_comp)/2);
-    arr_img_fft_crop(:,:,i) =(1./taylorWindow.*arr_img_fft(centerIm(1)-50:centerIm(1)...
-        + 49,centerIm(2)-49:centerIm(2) + 50 ,i));
-    arr_img_fft_polar(:,:,i) = (interp2(XX,YY,(arr_img_fft_crop(:,:,i)),k_1,k_2,'nearest',0));
-   
+    %Save data to disc
+    save(sprintf('../data/phase_histories/%s_PH',fileNamePrefix{idxPrefix}),...
+          'arr_azi','arr_img_fft_polar','arr_img_comp','depression');
 end
-
-elevation=elevation*ones(size(arr_azi));
-%Save data to disc
-save(sprintf('../data/phase_histories/%s_PH',file_out_prefix),'arr_img_fft_polar','elevation','arr_azi','f','thetas');
-
