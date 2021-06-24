@@ -18,7 +18,7 @@ clearvars m
 %Merge code
 infer_sample_flag=0;
 sample_start=1;
-sample_end=numTrainingSamples;
+sample_end=1%numTrainingSamples;
 class_folder=sprintf('../data/gen_aug_data/%s',fileNamePrefix{idxClass});
 class_file=sprintf('../data/gen_aug_data/%s_aug_images.mat',fileNamePrefix{idxClass});
 s=load(sprintf('%s/sample_%d',class_folder,sample_start));

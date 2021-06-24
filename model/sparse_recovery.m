@@ -16,7 +16,7 @@ for idxClass =1%:length(fileNamePrefix)
     data_PH=load(sprintf('../data/phase_histories/%s_PH',fileNamePrefix{idxClass}));
     numImages = size(data_PH.arr_img_fft_polar,3);
     f_center = 9.6e9;
-    bandwidth = 521e6; %591e6
+    bandwidth = 591e6; %591e6
     delF = bandwidth/100;
     fLower = f_center - bandwidth/2;
     f = linspace(fLower,fLower + bandwidth,100 ).';
@@ -43,9 +43,14 @@ for idxClass =1%:length(fileNamePrefix)
     %The angular and spatial grid points
     L =30;
     azimuthBasisCenters = 90+ linspace(-1.5,1.5,numAzimuthBasisCenters);
-    
-    xGrids = -L/2:0.3:L/2-0.3;
-    yGrids = -L/2:0.3:L/2-0.3;
+
+    % prevuos version with range resolution
+%     xGrids = -L/2:0.3:L/2-0.3;
+%     yGrids = -L/2:0.3:L/2-0.3;
+    xGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
+    xGrids = xGrids - mean(xGrids);
+    yGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
+    yGrids = yGrids - mean(yGrids);
     
     [X,Y] = meshgrid(xGrids,yGrids);
     Xp = repmat(X(:)',numFreqBins,1);
@@ -76,7 +81,7 @@ for idxClass =1%:length(fileNamePrefix)
     x_recovered = zeros(100*100*numVariables,numChips);
     fileName = sprintf('../data/recovered_coefficients/%s',fileNamePrefix{idxClass});
     gaussWidthStore=zeros(numChips,1);
-    for idxChips = 1:numChips
+    for idxChips = 1%:numChips
         fprintf('processing class=%d,image=%d\n',idxClass,idxChips);
         
         depression = data_PH.depression(idxChips);

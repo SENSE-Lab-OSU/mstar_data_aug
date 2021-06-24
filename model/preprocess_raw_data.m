@@ -13,7 +13,7 @@ f_center = 9.6e9;
 velLight = 299792458;
 numPixelsCrop = 128;
 numPixelsTarget = 100;
-bandwidth = 521e6;
+bandwidth = 591e6;
 fLower = f_center - bandwidth/2;
 taylorWindow = kron(taylorwin(numPixelsTarget,4,-35),taylorwin(numPixelsTarget,4,-35).');
 f = linspace(fLower,fLower + bandwidth,numPixelsTarget ).';
@@ -22,7 +22,7 @@ fRep  = repmat(f,1,numPixelsTarget);
 
 %% Iterate over all classes/folders
 
-for idxPrefix = 1:length(fileNamePrefix)
+for idxPrefix = 1%:length(fileNamePrefix)
     fprintf('Processing Class %s ...\n',fileNamePrefix{idxPrefix});
     pathLoad=sprintf('%s/%s/',path2mstar,fileNamePrefix{idxPrefix});
     file_names=dir([pathLoad sprintf('*.%s',extensions{idxPrefix})]);
