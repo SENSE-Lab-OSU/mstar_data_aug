@@ -66,11 +66,37 @@ PH_trainIm=load(sprintf('E:/BoxS/Box Sync/mstar/Tushar_tries/Augment_April_26_20
 PH_trainPH=load(sprintf('E:/BoxS/Box Sync/mstar/Tushar_tries/Augment_April_26_2020/train_phaseHistory/%s_masked',fileNamePrefix{idxClass}));
 
 %% Load Final output
-final_out=load(sprintf('../data/gen_aug_data/%s/sample_1',fileNamePrefix{idxClass}));
+img_old=load(sprintf('E:/BoxS/Box Sync/mstar/Tushar_tries/Augment_April_26_2020/gen_aug_data/%s/sample_1',fileNamePrefix{idxClass}));
+img_new=load(sprintf('../data/gen_aug_data/%s/sample_1',fileNamePrefix{idxClass}));
 %mask1 = zeros(numPixelsCrop,numPixelsCrop);
 centerIm=64;
-aoi=final_out.aziTrain(1);
+aoi=img_new.aziTrain(1);
 
+%figure;imagesc(squeeze(abs(final_out.imgTrain(1,:,:))));title('algorithm output at ');
+for idx_aug=1:14:196
+azi_shift=aoi-img_new.aziTrain(idx_aug);
+img_old_preproc=pre_process(img_old.imgTrain(idx_aug,:,:));
+img_new_preproc=pre_process(img_new.imgTrain(idx_aug,:,:));
+%Calculate perc diffs per old img
+diff_img=abs(img_new_preproc-img_old_preproc);%./(img_old_preproc);
+caxis_lims=[max(img_old_preproc(:))-30 max(img_old_preproc(:))];
+
+figure;
+subplot(131);imagesc(img_old_preproc,caxis_lims);colormap('jet');
+title('Old');axis('square');grid on;
+subplot(132);imagesc(img_new_preproc,caxis_lims);colormap('jet');
+title('New');axis('square');grid on;
+subplot(133);imagesc(diff_img,[0 1]);colormap('jet');
+title('Diff');axis('square');grid on;
+suptitle(sprintf('Augmented Image at %s+%s deg . Diff: Min=%s, Mean=%s, Max=%s',...
+    num2str(round(aoi,2)),num2str(round(azi_shift,2)),...
+    num2str(round(min(abs(diff_img(:))),2)),...
+    num2str(round(mean(abs(diff_img(:))),2)),...
+    num2str(round(max(abs(diff_img(:))),2))))
+%caxis([max(20*log10(im_preproc(:)))-30 max(20*log10(im_preproc(:)))]);
+%caxis(caxis_lims);
+end
+%%
 figure;
 im_preproc=abs(squeeze(PH_new.arr_img_comp(img_idx,centerIm-32:centerIm+31,centerIm-32:centerIm+31)));
 im_preproc=im_preproc./norm(im_preproc,'fro');
@@ -79,16 +105,3 @@ title(sprintf('Cropped True base image at %s deg.',...
     num2str(round(aoi,2))));grid on;
 caxis_lims=[max(20*log10(im_preproc(:)))-30 max(20*log10(im_preproc(:)))];
 caxis(caxis_lims);
-
-%figure;imagesc(squeeze(abs(final_out.imgTrain(1,:,:))));title('algorithm output at ');
-for idx_aug=15:3:49
-figure;
-azi_shift=aoi-final_out.aziTrain(idx_aug);
-im_preproc=squeeze(abs(final_out.imgTrain(idx_aug,:,:)));
-im_preproc=im_preproc./norm(im_preproc,'fro');
-imagesc(20*log10(im_preproc));colormap('jet');
-title(sprintf('Augmented Image at %s deg. azi_shifted %s deg.',...
-    num2str(round(aoi,2)),num2str(round(azi_shift,2))));grid on;
-%caxis([max(20*log10(im_preproc(:)))-30 max(20*log10(im_preproc(:)))]);
-caxis(caxis_lims);
-end

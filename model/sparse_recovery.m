@@ -16,7 +16,7 @@ for idxClass =1%:length(fileNamePrefix)
     data_PH=load(sprintf('../data/phase_histories/%s_PH',fileNamePrefix{idxClass}));
     numImages = size(data_PH.arr_img_fft_polar,3);
     f_center = 9.6e9;
-    bandwidth = 591e6; %591e6
+    bandwidth = 521e6; %591e6
     delF = bandwidth/100;
     fLower = f_center - bandwidth/2;
     f = linspace(fLower,fLower + bandwidth,100 ).';
@@ -45,12 +45,12 @@ for idxClass =1%:length(fileNamePrefix)
     azimuthBasisCenters = 90+ linspace(-1.5,1.5,numAzimuthBasisCenters);
 
     % prevuos version with range resolution
-%     xGrids = -L/2:0.3:L/2-0.3;
-%     yGrids = -L/2:0.3:L/2-0.3;
-    xGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
-    xGrids = xGrids - mean(xGrids);
-    yGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
-    yGrids = yGrids - mean(yGrids);
+    xGrids = -L/2:0.3:L/2-0.3;
+    yGrids = -L/2:0.3:L/2-0.3;
+%     xGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
+%     xGrids = xGrids - mean(xGrids);
+%     yGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
+%     yGrids = yGrids - mean(yGrids);
     
     [X,Y] = meshgrid(xGrids,yGrids);
     Xp = repmat(X(:)',numFreqBins,1);

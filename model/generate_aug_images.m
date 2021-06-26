@@ -46,7 +46,7 @@ for idxClass = 1%:length(fileNamePrefix)
     
     numFreqBins = 100;
     f_center = 9.6e9;
-    bandwidth = 591e6;
+    bandwidth = 521e6;
     pixelResolutionMSTAR = 0.202;
     delF = bandwidth/100;
     fLower = f_center - bandwidth/2;
@@ -69,12 +69,12 @@ for idxClass = 1%:length(fileNamePrefix)
     
     
     % prevuos version with range resolution
-%     xGrids = -L/2:0.3:L/2-0.3;
-%     yGrids = -L/2:0.3:L/2-0.3;
-    xGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
-    xGrids = xGrids - mean(xGrids);
-    yGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
-    yGrids = yGrids - mean(yGrids);
+    xGrids = -L/2:0.3:L/2-0.3;
+    yGrids = -L/2:0.3:L/2-0.3;
+%     xGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
+%     xGrids = xGrids - mean(xGrids);
+%     yGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
+%     yGrids = yGrids - mean(yGrids);
     
     [X,Y] = meshgrid(xGrids,yGrids);
     Xp = repmat(X(:)',numFreqBins,1);
