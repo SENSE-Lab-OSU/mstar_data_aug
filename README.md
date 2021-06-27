@@ -8,7 +8,7 @@ Repository containing augmentation code corresponding to the paper [Sparse Signa
 ### Requirements
 
 - MATLAB (preferably 2017+)
-- MSTAR data to proceed
+- MSTAR data
 - [mtimesx](https://www.mathworks.com/matlabcentral/fileexchange/25977-mtimesx-fast-matrix-multiply-with-multi-dimensional-support) Copyright (c) 2011, James Tursa. All rights reserved. (Already included in model folder)
 - [SPGL1 solver](https://friedlander.io/spgl1/) outlined in paper E. van den Berg and M. P. Friedlander, [Probing the Pareto frontier for basis pursuit solutions](https://friedlander.io/files/pdf/2008BergFriedlander.pdf), SIAM J. on Scientific Computing, 31(2):890-912, November 2008. (Already included in model folder)
 
