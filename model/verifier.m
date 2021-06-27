@@ -15,13 +15,14 @@ PH_new=load(sprintf('../data/phase_histories/%s_PH',fileNamePrefix{idxClass}));
 C_old=load(sprintf('../data/old/recovered_coefficients/%s',fileNamePrefix{idxClass}));
 C_new=load(sprintf('../data/recovered_coefficients/%s',fileNamePrefix{idxClass}));
 
-%% Compare old vs new
+%% Compare old vs new PH and ifft(PH)
 close all;
 isequal(PH_new.arr_azi,PH_old.arr_azi)
 isequal(PH_new.depression,PH_old.depression)
 isequal(PH_new.arr_img_fft_polar,PH_old.arr_img_fft_polar)
 %a1=C_new.x_recovered(:,2:end)==0;prod(a1(:))
 
+% Comparing Phase histories
 img_idx=1;
 figure;imagesc(abs(PH_new.arr_img_fft_polar(:,:,img_idx)));title('PH_{new}.arr-img-fft-polar')
 figure;imagesc(abs(PH_old.arr_img_fft_polar(:,:,img_idx)));title('PH_{old}.arr-img-fft-polar')
@@ -30,6 +31,8 @@ diff_arr=abs(PH_old.arr_img_fft_polar(:,:,img_idx)-PH_new.arr_img_fft_polar(:,:,
 disp(min(abs(diff_arr(:))));disp(mean(abs(diff_arr(:))));disp(max(abs(diff_arr(:))));
 
 figure;imagesc(diff_arr);title('perc diff_{arr}');
+
+%Comparing ifft(PH)
 figure;imagesc(abs(squeeze(PH_new.arr_img_comp(img_idx,:,:))));title('True base image');
 
 test_imag_ifft=ifftshift(ifft2(PH_old.arr_img_fft_polar(:,:,img_idx)));
@@ -61,11 +64,9 @@ plot(abs(C_old.x_recovered(:,img_idx)),...
 grid on;title('Comparison of old C (x-axis) vs. new (y-axis) C');
 xlabel('old C');ylabel('new C');
 %plot(C_new.x_recovered(:,img_idx),'r-+');legend('Old C','New C');
-%% Compare trainIm vs. trainPH in the older SARopGen. Paths wrt mstar Box shared folder
-PH_trainIm=load(sprintf('E:/BoxS/Box Sync/mstar/Tushar_tries/Augment_April_26_2020/train/%s_trainImPhaseHistories',fileNamePrefix{idxClass}));
-PH_trainPH=load(sprintf('E:/BoxS/Box Sync/mstar/Tushar_tries/Augment_April_26_2020/train_phaseHistory/%s_masked',fileNamePrefix{idxClass}));
 
-%% Load Final output
+%% Compare Final output (Radar Images)
+
 img_old=load(sprintf('E:/BoxS/Box Sync/mstar/Tushar_tries/Augment_April_26_2020/gen_aug_data/%s/sample_1',fileNamePrefix{idxClass}));
 img_new=load(sprintf('../data/gen_aug_data/%s/sample_1',fileNamePrefix{idxClass}));
 %mask1 = zeros(numPixelsCrop,numPixelsCrop);
@@ -73,7 +74,7 @@ centerIm=64;
 aoi=img_new.aziTrain(1);
 
 %figure;imagesc(squeeze(abs(final_out.imgTrain(1,:,:))));title('algorithm output at ');
-for idx_aug=1:14:196
+for idx_aug=1:15:196
 azi_shift=aoi-img_new.aziTrain(idx_aug);
 img_old_preproc=pre_process(img_old.imgTrain(idx_aug,:,:));
 img_new_preproc=pre_process(img_new.imgTrain(idx_aug,:,:));
@@ -97,11 +98,16 @@ suptitle(sprintf('Augmented Image at %s+%s deg . Diff: Min=%s, Mean=%s, Max=%s',
 %caxis(caxis_lims);
 end
 %%
-figure;
-im_preproc=abs(squeeze(PH_new.arr_img_comp(img_idx,centerIm-32:centerIm+31,centerIm-32:centerIm+31)));
-im_preproc=im_preproc./norm(im_preproc,'fro');
-imagesc(20*log10(im_preproc));colormap('jet');
-title(sprintf('Cropped True base image at %s deg.',...
-    num2str(round(aoi,2))));grid on;
-caxis_lims=[max(20*log10(im_preproc(:)))-30 max(20*log10(im_preproc(:)))];
-caxis(caxis_lims);
+function im_preproc=pre_process(img)
+    im_preproc=squeeze(abs(img));
+    im_preproc=im_preproc./norm(im_preproc,'fro');
+    im_preproc=(20*log10(im_preproc));
+end
+% figure;
+% im_preproc=abs(squeeze(PH_new.arr_img_comp(img_idx,centerIm-32:centerIm+31,centerIm-32:centerIm+31)));
+% im_preproc=im_preproc./norm(im_preproc,'fro');
+% imagesc(20*log10(im_preproc));colormap('jet');
+% title(sprintf('Cropped True base image at %s deg.',...
+%     num2str(round(aoi,2))));grid on;
+% caxis_lims=[max(20*log10(im_preproc(:)))-30 max(20*log10(im_preproc(:)))];
+% caxis(caxis_lims);
