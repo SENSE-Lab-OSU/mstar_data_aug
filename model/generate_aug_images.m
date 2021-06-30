@@ -20,7 +20,7 @@ tol_add=[-ones(1,9)*0.01 -0.03 0 -0.01 -0.03 0 0 -0.02 zeros(1,3) 0.02 ...
     zeros(1,2) -0.02 0 -0.02 -0.03 zeros(1,2) -0.02 0 -0.02 -0.03];
 tol_add=flip(-tol_add);
 
-for idxClass = 1%:length(fileNamePrefix)
+for idxClass = 1:length(fileNamePrefix)
 
     PH=load(sprintf('%s%s_PH',path2PH,fileNamePrefix{idxClass}));
     RC=load(sprintf('%s%s',path2coeff,fileNamePrefix{idxClass}));
@@ -33,7 +33,7 @@ for idxClass = 1%:length(fileNamePrefix)
     
     numTrainingSamples = size(RC.y_recovered,3);
     warning('Next Line will over-ride sample_end to iterate over all remaining samples');
-    %sample_end=numTrainingSamples;
+    sample_end=numTrainingSamples;
     
     taylorWindow = kron(taylorwin(100,4,-35),taylorwin(100,4,-35).');
     %thetas = [-5.5:0.03:-1.5-0.03 linspace(-1.5,1.5,100) 1.53:0.03:5.5 ] ;
@@ -68,13 +68,9 @@ for idxClass = 1%:length(fileNamePrefix)
     bisectorRep = repmat(bisectorAngles,length(f),1);
     
     
-    % prevuos version with range resolution
+    % Using range resolution=0.3
     xGrids = -L/2:0.3:L/2-0.3;
     yGrids = -L/2:0.3:L/2-0.3;
-%     xGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
-%     xGrids = xGrids - mean(xGrids);
-%     yGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
-%     yGrids = yGrids - mean(yGrids);
     
     [X,Y] = meshgrid(xGrids,yGrids);
     Xp = repmat(X(:)',numFreqBins,1);

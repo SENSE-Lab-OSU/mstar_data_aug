@@ -22,7 +22,7 @@ fRep  = repmat(f,1,numPixelsTarget);
 
 %% Iterate over all classes/folders
 
-for idxPrefix = 1%:length(fileNamePrefix)
+for idxPrefix = 1:length(fileNamePrefix)
     fprintf('Processing Class %s ...\n',fileNamePrefix{idxPrefix});
     pathLoad=sprintf('%s/%s/',path2mstar,fileNamePrefix{idxPrefix});
     file_names=dir([pathLoad sprintf('*.%s',extensions{idxPrefix})]);
