@@ -6,7 +6,7 @@ addpath('mtimesx')
 path2PH=('../data/phase_histories/');
 path2coeff=('../data/recovered_coefficients/');
 sample_start=1; %Change sample_start to start generating from that sample
-sample_end=1; %This is mostly dummy variable unless line 40 is commented
+sample_end=1; %This is mostly dummy variable unless line 36 is commented
 
 
 fileNamePrefix = {'2S1','BMP2_SN_9563','BMP2_SN_9566','BMP2_SN_C21',...
@@ -33,7 +33,7 @@ for idxClass = 1%:length(fileNamePrefix)
     
     numTrainingSamples = size(RC.y_recovered,3);
     warning('Next Line will over-ride sample_end to iterate over all remaining samples');
-    sample_end=numTrainingSamples;
+    %sample_end=numTrainingSamples;
     
     taylorWindow = kron(taylorwin(100,4,-35),taylorwin(100,4,-35).');
     %thetas = [-5.5:0.03:-1.5-0.03 linspace(-1.5,1.5,100) 1.53:0.03:5.5 ] ;
@@ -47,6 +47,7 @@ for idxClass = 1%:length(fileNamePrefix)
     numFreqBins = 100;
     f_center = 9.6e9;
     bandwidth = 521e6;
+    pixelResolutionMSTAR = 0.202;
     delF = bandwidth/100;
     fLower = f_center - bandwidth/2;
     f = linspace(fLower,fLower + bandwidth,100 ).';
@@ -67,8 +68,13 @@ for idxClass = 1%:length(fileNamePrefix)
     bisectorRep = repmat(bisectorAngles,length(f),1);
     
     
+    % prevuos version with range resolution
     xGrids = -L/2:0.3:L/2-0.3;
     yGrids = -L/2:0.3:L/2-0.3;
+%     xGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
+%     xGrids = xGrids - mean(xGrids);
+%     yGrids = 0:pixelResolutionMSTAR:99*pixelResolutionMSTAR;
+%     yGrids = yGrids - mean(yGrids);
     
     [X,Y] = meshgrid(xGrids,yGrids);
     Xp = repmat(X(:)',numFreqBins,1);
